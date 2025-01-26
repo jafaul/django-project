@@ -12,6 +12,9 @@ https://docs.djangoproject.com/en/5.1/ref/settings/
 import os
 from pathlib import Path
 
+
+from django.conf.global_settings import LOGIN_REDIRECT_URL
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
@@ -24,6 +27,7 @@ SECRET_KEY = os.getenv('DJANGO_SECRET_KEY', "default-secret-key")
 
 
 # SECURITY WARNING: don't run with debug turned on in production!
+
 DEBUG = os.getenv('DEBUG', 'True').lower() == 'True'
 
 ALLOWED_HOSTS = ["*"]
@@ -39,9 +43,11 @@ INSTALLED_APPS = [
     'django.contrib.messages',  # sending msg from server to client
     'django.contrib.staticfiles',  # allowing static files (html, css)
 
-    'apps.lesson.apps',
-    'apps.about',
-    'apps.random_app'
+    'apps.authentication',
+    'apps.management',
+    'apps.assessment'
+
+
 ]
 
 MIDDLEWARE = [
@@ -56,6 +62,7 @@ MIDDLEWARE = [
 
 # urls.py path
 ROOT_URLCONF = 'urls'
+
 
 TEMPLATES = [
     {
@@ -83,6 +90,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'ATOMIC_REQUESTS': True,
+
     }
 }
 
@@ -91,19 +100,22 @@ DATABASES = {
 # Password validation
 # https://docs.djangoproject.com/en/5.1/ref/settings/#auth-password-validators
 
+AUTH_USER_MODEL = 'authentication.User'
+
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
+    # },
+    # {
+    #     'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
+    # },
+
 ]
 
 
@@ -118,6 +130,8 @@ USE_I18N = True
 
 USE_TZ = True
 
+# todo check multilang
+
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/5.1/howto/static-files/
@@ -128,3 +142,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+
