@@ -1,0 +1,175 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Create Course" %}</title>
+    {%  block style %} {% endblock %}
+</head>
+<body>
+<div>
+    <h1>{{ course.title }}</h1>
+    {% if course.teacher %}
+    <h3>{% trans "Head teacher:" %} {{ course.teacher.email }}</h3>
+    {% endif %}
+</div>
+
+<div class="container">
+        <div class="course-header" style="text-align: center; margin-bottom: 50px; margin-top: -30px">
+            {% if course.description|safe %}<p>
+                <em>{{ course.description|safe }} </em>
+            </p> <br>
+        {% endif %}
+            {% if user.position == "admin" %}
+                <a href="{% url "management:update-course" pk=course.id %}" id="add-task-btn">Update course</a> <br>
+            {% endif %}
+        </div>
+
+        <div style="margin-bottom: 40px;" >
+            <fieldset id='lectures' class="sub-course-info">
+            <legend style="font-size: 30px;"><strong>Lectures</strong></legend>
+            {% if course.lectures.all %}
+                <dl class="items-list">
+                {% for lecture in course.lectures.all %}
+                <dt class='item-dt' style="counter-increment: dt-counter; color: #3f4137; font-weight: 300"><strong>{{ lecture.title }}</strong></dt>
+                    {% if lecture.description %}
+                        <dd class="sub-item-list"><em>{{ lecture.description|safe }}</em></dd>
+                    {% endif %}
+                    <hr>
+                </dl>
+
+                {% endfor %}
+            {% else %}
+                <p style="margin: 20px">No lectures available for this course.</p>
+            {% endif %}
+            {% if user.position == "manager" or user.position == "admin" %}
+                <a href="{% url "management:create-lecture" pk=course.id %}" id="add-task-btn">Add a new lecture to this course</a>
+            {% endif %}
+            </fieldset>
+        </div>
+
+        <div style="margin-bottom: 40px;" >
+            <fieldset id='students' class="sub-course-info">
+            <legend style="font-size: 30px;"><strong>Our Students</strong></legend>
+            {% if course.students.all %}
+                <table class="table table-condensed">
+                    <thead>
+                      <tr>
+                        <th>Fullname</th>
+                      {% if user.is_staff %}
+                        <th>Email</th>
+                      {% endif %}
+                      </tr>
+                    </thead>
+                    <tbody>
+                    {% for student in course.students.all %}
+                        <tr class="row">
+                            <td>{{ student.first_name}} {{student.last_name}}</td>
+                        {% if user.is_staff %}
+                            <td>{{ student.email }}</td>
+                        {% endif %}
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                  </table>
+
+            {% else %}
+                <p style="margin: 20px">No students yet.</p>
+            {% endif %}
+
+            </fieldset>
+        </div>
+
+        <div>
+        <fieldset id="tasks" class="sub-course-info">
+            <legend style="font-size: 30px;"><strong>Tasks</strong></legend>
+            {% if course.tasks.all %}
+                <dl id="task-list"  class="items-list">
+                    {% for task in course.tasks.all %}
+                        <dt class='item-dt' style="font-size: 20px; text-decoration: underline;
+                         counter-increment: dt-counter; color: #3f4137; font-weight: 300">
+                            <strong>
+                                {% if task.title %}
+                                {{ task.title }}
+                                {% else %}
+                                 Task {{ task.id }}
+                                {% endif %}
+                            </strong></dt>
+                        <dd class="sub-item-list"><strong>Max mark: </strong>{{ task.max_mark }}</dd>
+                        <dd class="sub-item-list"><strong>Deadline: </strong>{{ task.deadline }}</dd>
+                        {% if task.description %}
+                        <dd class="sub-item-list"><strong>Description:</strong> </dd>
+                        <dd  class="sub-item-list" style="margin-top: 10px;">{{ task.description|safe }}</dd>
+                        {% endif %}
+                        {% if task.answers.all %}
+                            <hr>
+
+                            <table  class="table table-condensed">
+                            <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Student answer</th>
+                                <th>Date</th>
+                                <th>Teacher</th>
+                                <th>Mark</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for answer in task.answers.all %}
+                                <tr>
+                                <td>{{ answer.student.first_name}} {{ answer.student.last_name }}</td>
+                                <td>{{ answer.description|safe }}</td>
+                                <td>{{ answer.submission_datetime }}</td>
+                                {% if answer.mark_id %}
+                                <td>{{ answer.mark.teacher.first_name }} {{ answer.mark.teacher.last_name}}</td>
+                                <td>{{ answer.mark.mark_value }}</td>
+                                {% else %}
+                                <td colspan="2">
+                                    {% if user.position == "teacher" or user.position == "admin"%}
+                                    <a href="{% url "assessment:create_mark" pk=course.id pktask=task.id pkanswer=answer.id %}"
+                                       id="add-task-btn">
+                                        Assign a mark
+                                    </a>
+                                    {% else %}
+                                        <p>No mark assigned yet</p>
+                                    {% endif %}
+                                </td>
+                                {% endif %}
+
+                                </tr>
+                            {% endfor %}
+                            </tbody>
+                            </table>
+                        {% endif %}
+
+                        {% if user.position == "student" %}
+                        <a href="{% url "assessment:create_answer" pk=course.id pktask=task.id %}"
+                           id="add-task-btn">Create answer
+                        </a>
+                        {% endif %}
+
+                        <hr>
+
+                    {% endfor %}
+                        <hr>
+                </dl>
+            {% else %}
+                <p style="margin: 20px" >No lectures available for this course.</p>
+            {% endif %}
+            {% if user.position == "teacher" or user.position == "admin" %}
+            <a href="{% url "management:create-task" pk=course.id %}" id="add-task-btn">
+                Add a new task to this course
+            </a>
+             {% endif %}
+
+        </fieldset>
+        </div>
+    </div>
+
+</body>
+<hr>
+<a href="{% url "home:home-page" %}">{% trans "Back to home" %}</a>
+{% include 'footer.html' %}
+</html>

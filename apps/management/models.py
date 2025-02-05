@@ -1,10 +1,12 @@
 import datetime
 
 from django.contrib.auth import get_user_model
+from django.contrib.auth.models import Permission
+from django.contrib.contenttypes.models import ContentType
 from django.core.validators import MinValueValidator, MaxValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-
+from tinymce.models import HTMLField
 
 User = get_user_model()
 
@@ -16,11 +18,42 @@ class Course(models.Model):
     title = models.CharField(_('Title'), max_length=255)
     description = models.TextField(_('Description'), null=True, blank=True)
     students = models.ManyToManyField(
-        User, related_name='courses_as_students',
+        User, related_name='courses_as_students', default=[], blank=True
     )
 
     def __str__(self):
         return f'<Course: {self.title}>'
+
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
+        content_type = ContentType.objects.get_for_model(Course)
+
+        teacher_perm, created = Permission.objects.get_or_create(
+            codename=f"can_access_{self.id}_course_as_teacher",
+            name=_(f"Can access {self.title} course as teacher"),
+            content_type=content_type,
+        )
+
+        students_perm, created = Permission.objects.get_or_create(
+            codename=f"can_access_{self.id}_course_as_student",
+            name=_(f"Can access {self.title} course as student"),
+            content_type=content_type,
+        )
+
+        if self.teacher and not self.teacher.has_perm(teacher_perm):
+            self.teacher.user_permissions.add(teacher_perm)
+            print(f"added permission for teacher: {self.teacher.get_all_permissions()}")
+
+        self.refresh_from_db()
+
+        if self.students.exists():
+            for student in self.students.all():
+                if not student.has_perm(students_perm):
+                    student.user_permissions.add(students_perm)
+                    print(f"added permission for student {student.email}: {self.teacher.get_all_permissions()}")
+        print("saving ... ")
+        super().save(*args, **kwargs)
 
 
 class Task(models.Model):

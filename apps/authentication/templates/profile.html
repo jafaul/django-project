@@ -9,13 +9,16 @@
     {%  block style %} {% endblock %}
 </head>
 <body>
+{% include "profile_body.html" with user=user %}
+
 <div>
-    <h1>{%  trans "Settings" %}</h1>
+<a href="{% url "management:my-courses" %}"> My courses </a><br>
+<a href="{% url 'authentication:settings' %}">{% trans "Settings" %}</a> <br>
 
 </div>
-<form method="post" action="{% url 'apps.authentication:logout' %}">
-    {% csrf_token %}
-    <button type="submit">{% trans "Logout" %}</button>
-</form>
+<hr>
+<a href="{% url "apps.home:home-page" %}">Back to home</a>
+
+
 </body>
 </html>
